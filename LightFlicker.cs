@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 /// Mod: Improved Interior Lighting
 /// Author: ShortBeard
-/// Version: 1.0.0
+/// Version: 1.0.1
 /// Description: Creates warmer interior & dungeon lights.
 ///////////////////////////////////////////////////////////
 /// LightFlicker.cs by posted by LaneFox https://answers.unity.com/questions/742466/camp-fire-light-flicker-control.html

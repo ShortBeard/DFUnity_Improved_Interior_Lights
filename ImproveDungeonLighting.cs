@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 /// Mod: Improved Interior Lighting
 /// Author: ShortBeard
-/// Version: 1.0.0
+/// Version: 1.0.1
 /// Description: Creates warmer interior & dungeon lights.
 ///////////////////////////////////////////////////////////
 
@@ -24,18 +24,13 @@ namespace ImprovedInteriorLighting {
             public float LightFlickerStrength;
         }
 
-        private class TorchSettings {
-            public bool PlayerTorchChanged;
-            public Color32 PlayerTorchColor;
-            //public bool PlayerTorchFlicker;
-            //public float PlayerTorchFlickerStrength;
-        }
+
 
         // Use this for initialization
         private const int LIGHT_OBJECT_ARCHIVE = 210; //All light objects seem to exist within this archive
         private static Mod improvedDungeonLightMod;
         private static DungeonSettings dungeonModSettings;
-        private static TorchSettings torchModSettings;
+
 
 
         [Invoke(StateManager.StateTypes.Game, 0)]
@@ -50,15 +45,10 @@ namespace ImprovedInteriorLighting {
 
         private void Start() {
             dungeonModSettings = new DungeonSettings();
-            torchModSettings = new TorchSettings();
+
             Mod mod = ModManager.Instance.GetMod("Handpainted Models - Main");
             bool handPaintedModFound = mod != null;
             improvedDungeonLightMod.GetSettings().Deserialize("Dungeons", ref dungeonModSettings);
-            improvedDungeonLightMod.GetSettings().Deserialize("Torch", ref torchModSettings);
-            //Apply any torch settings changes if we have to
-            if (torchModSettings.PlayerTorchChanged) {
-                AdjustPlayerTorch();
-            }
             if (dungeonModSettings.Enabled == true) {
                 if (GameManager.Instance.IsPlayerInsideDungeon) {
                     ApplyShadowSettings(null); //Apply our shadow settings
@@ -110,7 +100,7 @@ namespace ImprovedInteriorLighting {
         private void AdjustExistingLightSources(PlayerEnterExit.TransitionEventArgs args) {
             Light[] dfLights = (Light[])FindObjectsOfType(typeof(Light)); //Get all dungeon lights in the scene
             foreach (Light dfLight in dfLights) {
-                //We don't want the torch to be changed yet
+                //We don't want the torch to be changed here
                 if (dfLight.gameObject.name != "Torch") {
 
                     dfLight.color = dungeonModSettings.DungeonLightsColor;
@@ -129,28 +119,7 @@ namespace ImprovedInteriorLighting {
         }
 
 
-        /// <summary>
-        /// This just calls the coroutine to look for the torch after entering a dungeon
-        /// </summary>
-        /// <param name="args"></param>
-        private void AdjustPlayerTorch() {
-            //Change the lighting on the player torch if the settings are set to do so
-            if (torchModSettings.PlayerTorchChanged == true) {
-                //We have to get the inactive gameobject using PlayerAdvanced as a reference point since the Torch object can start in an inactive state.
-                GameObject torchObject = GameObject.Find("PlayerAdvanced").transform.GetChild(0).GetChild(1).gameObject;
-                if (torchObject != null) {
-                    Light torchLight = torchObject.GetComponent<Light>();
-                    torchLight.color = torchModSettings.PlayerTorchColor;
 
-                    //Might later on add torch flickering, but would first have to do more testing on how it interacts with the existing in-game torch.
-                    /*
-                    if (torchModSettings.PlayerTorchFlicker == true && torchObject.GetComponent<LightFlicker>() == null) {
-                        AddLightFlicker(torchObject, 0.5f, 1.5f, 0, torchModSettings.PlayerTorchFlickerStrength);
-                    }
-                    */
-                }
-            }
-        }
 
 
         /// <summary>
