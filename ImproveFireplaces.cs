@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 /// Mod: Improved Interior Lighting
 /// Author: ShortBeard
-/// Version: 1.0.1
+/// Version: 1.0.2
 /// Description: Creates warmer interior & dungeon lights.
 ///////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@ namespace ImprovedInteriorLighting {
 
         class FireplaceSettings {
             public bool EnabledInInteriors;
-            public bool EnabledInDungeons;
+            //public bool EnabledInDungeons;
             public Color32 FireplaceLightsColor;
             public float FireplaceIntensity;
             public bool FireplaceFlickeringLights;
@@ -44,7 +44,7 @@ namespace ImprovedInteriorLighting {
             improvedFireplaceMod.GetSettings().Deserialize("FirePlaces", ref fireplaceModSettings);
 
             //Immediately apply any fireplace lights if we load into an interior or ungeon
-            if ((GameManager.Instance.IsPlayerInsideBuilding && fireplaceModSettings.EnabledInInteriors) || (GameManager.Instance.IsPlayerInsideDungeon && fireplaceModSettings.EnabledInDungeons)) {
+            if (GameManager.Instance.IsPlayerInsideBuilding && fireplaceModSettings.EnabledInInteriors /*|| (GameManager.Instance.IsPlayerInsideDungeon && fireplaceModSettings.EnabledInDungeons)*/) {
                 AddLightsToFireplaces(null);
             }
 
@@ -52,9 +52,11 @@ namespace ImprovedInteriorLighting {
             if (fireplaceModSettings.EnabledInInteriors) {
                 PlayerEnterExit.OnTransitionInterior += AddLightsToFireplaces;
             }
+            /*
             if (fireplaceModSettings.EnabledInDungeons) {
                 PlayerEnterExit.OnTransitionDungeonInterior += AddLightsToFireplaces;
             }
+            */
 
         }
 

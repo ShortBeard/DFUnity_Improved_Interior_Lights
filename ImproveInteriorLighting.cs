@@ -1,14 +1,12 @@
 ///////////////////////////////////////////////////////////
 /// Mod: Improved Interior Lighting
 /// Author: ShortBeard
-/// Version: 1.0.1
+/// Version: 1.0.2
 /// Description: Creates warmer interior & dungeon lights.
 ///////////////////////////////////////////////////////////
 
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
-using System;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace ImprovedInteriorLighting {
