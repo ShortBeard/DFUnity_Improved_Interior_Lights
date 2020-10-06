@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////
 /// Mod: Improved Interior Lighting
 /// Author: ShortBeard
-/// Version: 1.0.2
+/// Version: 1.0.3
 /// Description: Creates warmer interior & dungeon lights.
 ///////////////////////////////////////////////////////////
 
@@ -10,13 +10,17 @@ using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using UnityEngine;
 
-namespace ImprovedInteriorLighting {
+namespace ImprovedInteriorLighting
+{
 
-    public class ImproveDungeonLighting : MonoBehaviour {
+    public class ImproveDungeonLighting : MonoBehaviour
+    {
 
-        private class DungeonSettings {
+        public class DungeonSettings
+        {
             public bool Enabled;
             public bool EnemyShadows;
+            public bool EnemyShadowsNoShadowEnemies;
             public Color32 DungeonLightsColor;
             public float DungeonLightsIntensity;
             public bool FlickeringLights;
@@ -29,12 +33,14 @@ namespace ImprovedInteriorLighting {
         // Use this for initialization
         private const int LIGHT_OBJECT_ARCHIVE = 210; //All light objects seem to exist within this archive
         private static Mod improvedDungeonLightMod;
-        private static DungeonSettings dungeonModSettings;
+        public static DungeonSettings dungeonModSettings;
+        private bool handPaintedModFound;
 
 
 
         [Invoke(StateManager.StateTypes.Game, 0)]
-        public static void Init(InitParams initParams) {
+        public static void Init(InitParams initParams)
+        {
             GameObject improvedDungeonLightingObj = new GameObject("improvedDungeonLighting");
             improvedDungeonLightingObj.AddComponent<ImproveDungeonLighting>();
             improvedDungeonLightMod = initParams.Mod;
@@ -43,40 +49,46 @@ namespace ImprovedInteriorLighting {
 
 
 
-        private void Start() {
+        private void Start()
+        {
             dungeonModSettings = new DungeonSettings();
 
             Mod mod = ModManager.Instance.GetMod("Handpainted Models - Main");
-            bool handPaintedModFound = mod != null;
+            handPaintedModFound = mod != null;
             improvedDungeonLightMod.GetSettings().Deserialize("Dungeons", ref dungeonModSettings);
-            if (dungeonModSettings.Enabled == true) {
-                if (GameManager.Instance.IsPlayerInsideDungeon) {
+            if (dungeonModSettings.Enabled == true)
+            {
+                if (GameManager.Instance.IsPlayerInsideDungeon)
+                {
                     ApplyShadowSettings(null); //Apply our shadow settings
                     RemoveVanillaLightSources(null); //If the game starts or is loaded indoors, apply the shadows right away
 
                     //Check to see if the hand painted mod exists - if it does we don't have to add new lights, only adjust exisitng ones.
-                    if (handPaintedModFound == true) {
+                    if (handPaintedModFound == true)
+                    {
                         AdjustExistingLightSources(null);
                     }
-                    else {
-                        AddImprovedLighting(null);
-                    }
+
+                    AddImprovedLighting(null);
                 }
 
                 PlayerEnterExit.OnTransitionDungeonInterior += RemoveVanillaLightSources; //Remove all the daggerfall vanilla light sources in dungeons.
                 PlayerEnterExit.OnTransitionDungeonInterior += ApplyShadowSettings;
 
                 //If the hainted painted mod is found, adjust that mods existing lights instead of creating new ones
-                if (handPaintedModFound == true) {
+                if (handPaintedModFound == true)
+                {
                     PlayerEnterExit.OnTransitionDungeonInterior += AdjustExistingLightSources;
                 }
-                else {
+                else
+                {
                     PlayerEnterExit.OnTransitionDungeonInterior += AddImprovedLighting;
                 }
             }
         }
 
-        private void ApplyShadowSettings(PlayerEnterExit.TransitionEventArgs args) {
+        private void ApplyShadowSettings(PlayerEnterExit.TransitionEventArgs args)
+        {
             BillboardShadows.ToggleIndoorNPCBillboardShadows(dungeonModSettings.EnemyShadows); //Technically there are usually no NPC's in dungeon except rescue quests so we toggle this anyway
             BillboardShadows.ToggleDungeonEnemyBillboardShadows(dungeonModSettings.EnemyShadows, this); //Toggle enemy billboard shadows
         }
@@ -86,9 +98,11 @@ namespace ImprovedInteriorLighting {
         /// DFUnity in an attempt to stay true to the original does light optimization, so multiple "light objects" may be represented by only one light source in the same proximity.
         /// Before we add new lights to everything, we need to removed the optimized ones first.
         /// </summary>
-        private void RemoveVanillaLightSources(PlayerEnterExit.TransitionEventArgs args) {
+        private void RemoveVanillaLightSources(PlayerEnterExit.TransitionEventArgs args)
+        {
             DungeonLightHandler[] dfLights = (DungeonLightHandler[])FindObjectsOfType(typeof(DungeonLightHandler)); //Get all dungeon lights in the scene
-            for (int i = 0; i < dfLights.Length; i++) {
+            for (int i = 0; i < dfLights.Length; i++)
+            {
                 Destroy(dfLights[i].gameObject);
             }
         }
@@ -97,12 +111,14 @@ namespace ImprovedInteriorLighting {
         /// <summary>
         /// If the user is running the Handpainted Models mod - adjust the lights instead of completely replacing them.
         /// </summary>
-        private void AdjustExistingLightSources(PlayerEnterExit.TransitionEventArgs args) {
+        private void AdjustExistingLightSources(PlayerEnterExit.TransitionEventArgs args)
+        {
             Light[] dfLights = (Light[])FindObjectsOfType(typeof(Light)); //Get all dungeon lights in the scene
-            foreach (Light dfLight in dfLights) {
-                //We don't want the torch to be changed here
-                if (dfLight.gameObject.name != "Torch") {
-
+            foreach (Light dfLight in dfLights)
+            {
+                //We don't want the torch to be changed here, and we only want to run adjustments on light sources that are placed by Handpainted models. Replacement objects contain "[Replacement]" on the GameObject name.
+                if (dfLight.gameObject.name != "Torch" && dfLight.transform.parent.name.Contains("[Replacement]"))
+                {
                     dfLight.color = dungeonModSettings.DungeonLightsColor;
                     dfLight.intensity = dungeonModSettings.DungeonLightsIntensity;
                     dfLight.range = 10;
@@ -111,7 +127,8 @@ namespace ImprovedInteriorLighting {
                     dfLight.shadowStrength = 1f;
 
                     //Add flickering to regular light source
-                    if (dungeonModSettings.FlickeringLights == true) {
+                    if (dungeonModSettings.FlickeringLights == true)
+                    {
                         AddLightFlicker(dfLight.gameObject, 1.5f, 2.5f, 0, dungeonModSettings.LightFlickerStrength);
                     }
                 }
@@ -124,14 +141,17 @@ namespace ImprovedInteriorLighting {
 
         /// <summary>
         /// Find all bill boards that match the archive that stores all light emitting object billboard. (Is there a better way to find these?)
-        /// Then after finding them, spawn a new light source on them.
-        /// This runs when hand painted models mod isn't being used.
+        /// Then after finding them, spawn a new light source on them. This will ignore objects with existing light sources placed by handPaintedMods, as they were adjusted already in AdjustLightSources method.
         /// </summary>
         /// <param name="args"></param>
-        private void AddImprovedLighting(PlayerEnterExit.TransitionEventArgs args) {
+        private void AddImprovedLighting(PlayerEnterExit.TransitionEventArgs args)
+        {
             DaggerfallBillboard[] lightBillboards = (DaggerfallBillboard[])FindObjectsOfType(typeof(DaggerfallBillboard)); //Get all "light emitting objects" in the dungeon
-            foreach (DaggerfallBillboard billBoard in lightBillboards) {
-                if (billBoard.Summary.Archive == LIGHT_OBJECT_ARCHIVE) {
+            foreach (DaggerfallBillboard billBoard in lightBillboards)
+            {
+                //Add lighting if its found as a light object. Do this if hand painted mod is disabled, or do it if it's enabled but the object is not a replacement done by hand painted mod.
+                if (billBoard.Summary.Archive == LIGHT_OBJECT_ARCHIVE && (handPaintedModFound == false || handPaintedModFound == true && !billBoard.gameObject.name.Contains("[Replacement]")))
+                {
                     GameObject newLightObject = new GameObject("ImprovedDungeonLight");
                     newLightObject.transform.SetParent(billBoard.transform);
                     newLightObject.transform.localPosition = new Vector3(0, 0, 0); //Put the new improved light child object at the parents root position
@@ -146,7 +166,8 @@ namespace ImprovedInteriorLighting {
                     improvedLight.shadowStrength = 1f;
 
                     //Add flickering light if the mod settings allow for it
-                    if (dungeonModSettings.FlickeringLights == true) {
+                    if (dungeonModSettings.FlickeringLights == true)
+                    {
                         AddLightFlicker(newLightObject, 1.5f, 2.5f, 0, dungeonModSettings.LightFlickerStrength);
                     }
                 }
@@ -157,7 +178,8 @@ namespace ImprovedInteriorLighting {
         /// Adds a light flickering script to object with the new light source on it
         /// </summary>
         /// <param name="lightObject"></param>
-        private void AddLightFlicker(GameObject lightObject, float maxReduction, float maxIncrease, float rateDamping, float strength) {
+        private void AddLightFlicker(GameObject lightObject, float maxReduction, float maxIncrease, float rateDamping, float strength)
+        {
             LightFlicker lightFlicker = lightObject.AddComponent<LightFlicker>();
             lightFlicker.MaxReduction = maxReduction;
             lightFlicker.MaxIncrease = maxIncrease;
