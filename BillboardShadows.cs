@@ -70,7 +70,7 @@ namespace ImprovedInteriorLighting
                 if (enemyRenderer != null)
                 {
                     //Add shadows if the setting is enabled, and the enemy is marked by the engine to cast a shadow OR the option is toggled to force shadows on ALL enemies regardless of what the engine marks it as.
-                    if ((shadowsEnabled == true && enemy.gameObject.GetComponentInChildren<DaggerfallMobileUnit>().Summary.Enemy.NoShadow == false) || (shadowsEnabled == true && ImproveDungeonLighting.dungeonModSettings.EnemyShadowsNoShadowEnemies == true))
+                    if ((shadowsEnabled == true && enemy.gameObject.GetComponentInChildren<MobileUnit>().Enemy.NoShadow == false) || (shadowsEnabled == true && ImproveDungeonLighting.dungeonModSettings.EnemyShadowsNoShadowEnemies == true))
                     {
                         enemyRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided; //Give their mesh renderer a shadow. This will take a second to apply as per the above coroutine that waits 1 second.
                     }
