@@ -72,7 +72,7 @@ namespace ImprovedInteriorLighting
             {
                 //We don't want to adjust the torch when we enter the interior
                 // if (dfLight.gameObject.name != "Torch" && (handPaintedModFound == false || handPaintedModFound == true && dfLight.transform.parent.name.Contains("[Replacement]"))) {
-                if (dfLight.gameObject.name != "Torch")
+                if (dfLight.gameObject.name != "Torch" && dfLight.transform.root.name != "Exterior")
                 {
                     dfLight.intensity = interiorModSettings.InteriorLightsIntensity;
                     dfLight.shadows = LightShadows.Soft;
